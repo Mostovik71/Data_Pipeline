@@ -9,3 +9,11 @@ services:
       - POSTGRES_PASSWORD=root
       - POSTGRES_USER=admin
     image: postgres:12.17-alpine
+    volumes:
+      - pdata:/var/lib/postgresql/data
+
+volumes:
+  pdata:
+    external: true
+    name:
+      5a64e9dcd025fc9a173e592b047aac519e61536c7a88db553712872630eb2acf
