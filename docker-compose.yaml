@@ -6,54 +6,91 @@ networks:
 
 
 services:
-  postgres_main:
-    container_name: postgres_main
-    image: postgres:12.17-alpine
+  postgres:
+    image: debezium/postgres:13
+    container_name: postgres
     ports:
-      - "5432:5432"
+      - 5432:5432
     environment:
-      - POSTGRES_PASSWORD=root
       - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=root
+      - POSTGRES_DB=habit
     networks:
       - custom_network
-    volumes:
-      - pdata:/var/lib/postgresql/data
+    # volumes:
+    #   - pdata:/var/lib/postgresql/data
 
-  # zookeeper:
-  #   container_name: zookeeper
-  #   image: bitnami/zookeeper:3.9.1
-  #   ports: 
-  #     - "2181:2181"
-  #   environment:
-  #     - ALLOW_ANONYMOUS_LOGIN=yes
-  #   networks:
-  #     - custom_network
-  #   depends_on:
-  #     - postgres_main
-    
-    
-  kafka:
-    container_name: kafka
-    image: bitnami/kafka:3.6.1
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin
+    environment: 
+        - PGADMIN_DEFAULT_EMAIL=admin@admin.com
+        - PGADMIN_DEFAULT_PASSWORD=root
     ports:
-      - "9094:9094"
+        - '5050:80'
+    restart: always
+    networks:
+        - custom_network
+    
+  zookeeper:
+    image: confluentinc/cp-zookeeper:5.5.3
+    container_name: zookeeper
     environment:
-    #  - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
-      - KAFKA_CFG_NODE_ID=0
-      - KAFKA_CFG_PROCESS_ROLES=controller,broker
-      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=0@localhost:9093
-      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092, CONTROLLER://:9093,EXTERNAL://:9094
-      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092,EXTERNAL://localhost:9094
-      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,EXTERNAL:PLAINTEXT,PLAINTEXT:PLAINTEXT
-      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
-
+      ZOOKEEPER_CLIENT_PORT: 2181
     networks:
       - custom_network
-    # depends_on:
-    #   - zookeeper
 
-volumes:
-  pdata:
-    external: true
-    name:
-      5a64e9dcd025fc9a173e592b047aac519e61536c7a88db553712872630eb2acf
+  kafka:
+    image: confluentinc/cp-enterprise-kafka:5.5.3
+    container_name: kafka
+    depends_on: [zookeeper]
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_JMX_PORT: 9991
+    ports:
+      - 29092:29092
+    networks:
+      - custom_network
+
+  debezium:
+    image: debezium/connect:1.4
+    container_name: debezium
+    environment:
+      BOOTSTRAP_SERVERS: kafka:9092
+      GROUP_ID: 1
+      CONFIG_STORAGE_TOPIC: connect_configs
+      OFFSET_STORAGE_TOPIC: connect_offsets
+      STATUS_STORAGE_TOPIC: my_status_topic
+      KEY_CONVERTER: io.confluent.connect.avro.AvroConverter
+      VALUE_CONVERTER: io.confluent.connect.avro.AvroConverter
+      CONNECT_KEY_CONVERTER_SCHEMA_REGISTRY_URL: http://schema-registry:8085
+      CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL: http://schema-registry:8085
+    depends_on: [kafka]
+    ports:
+      - 8083:8083
+    networks:
+      - custom_network
+
+  schema-registry:
+    image: confluentinc/cp-schema-registry:5.5.3
+    container_name: schema-registry
+    environment:
+      - SCHEMA_REGISTRY_KAFKASTORE_CONNECTION_URL=zookeeper:2181
+      - SCHEMA_REGISTRY_HOST_NAME=schema-registry
+      - SCHEMA_REGISTRY_LISTENERS=http://schema-registry:8085,http://localhost:8085
+    ports:
+      - 8085:8085
+    depends_on: [zookeeper, kafka]
+    networks:
+      - custom_network
+
+# volumes:
+#   pdata:
+#     external: true
+#     name:
+#       5a64e9dcd025fc9a173e592b047aac519e61536c7a88db553712872630eb2acf

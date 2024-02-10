@@ -1,0 +1,16 @@
+{
+    "name": "postgresql-connector",
+    "config": {
+        "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
+        "plugin.name": "pgoutput",
+        "database.hostname": "postgres",
+        "database.port": "5432",
+        "database.user": "admin",
+        "database.password": "root",
+        "database.dbname": "habit",
+        "database.server.name": "postgres",
+        "table.include.list": "public.habit_data, public.pers_data, public.reports_data",
+        "table.whitelist": "public.habit_data, public.pers_data, public.reports_data",
+        "topic.prefix": "topic_habit"
+    }
+    }
