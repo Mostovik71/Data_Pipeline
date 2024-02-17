@@ -19,18 +19,6 @@ services:
       - custom_network
     # volumes:
     #   - pdata:/var/lib/postgresql/data
-
-  pgadmin:
-    image: dpage/pgadmin4
-    container_name: pgadmin
-    environment: 
-        - PGADMIN_DEFAULT_EMAIL=admin@admin.com
-        - PGADMIN_DEFAULT_PASSWORD=root
-    ports:
-        - '5050:80'
-    restart: always
-    networks:
-        - custom_network
     
   zookeeper:
     image: confluentinc/cp-zookeeper:5.5.3
@@ -66,8 +54,8 @@ services:
       CONFIG_STORAGE_TOPIC: connect_configs
       OFFSET_STORAGE_TOPIC: connect_offsets
       STATUS_STORAGE_TOPIC: my_status_topic
-      KEY_CONVERTER: io.confluent.connect.avro.AvroConverter
-      VALUE_CONVERTER: io.confluent.connect.avro.AvroConverter
+      # KEY_CONVERTER: io.confluent.connect.avro.AvroConverter
+      # VALUE_CONVERTER: io.confluent.connect.avro.AvroConverter
       CONNECT_KEY_CONVERTER_SCHEMA_REGISTRY_URL: http://schema-registry:8085
       CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL: http://schema-registry:8085
     depends_on: [kafka]
@@ -88,6 +76,34 @@ services:
     depends_on: [zookeeper, kafka]
     networks:
       - custom_network
+
+  clickhouse:
+    image: clickhouse/clickhouse-server:23.12-alpine
+    container_name: clickhouse
+    ports:
+      - "8123:8123"
+    environment:
+      - CLICKHOUSE_DB=habit
+      - CLICKHOUSE_USER=admin
+      - CLICKHOUSE_PASSWORD=root
+    networks:
+      - custom_network
+    ulimits:
+      nofile: 262144 
+
+  
+  # PGADMIN нужен только на этапе конфигурации debezium
+
+  # pgadmin: 
+  #   image: dpage/pgadmin4
+  #   container_name: pgadmin
+  #   environment: 
+  #       - PGADMIN_DEFAULT_EMAIL=admin@admin.com
+  #       - PGADMIN_DEFAULT_PASSWORD=root
+  #   ports:
+  #       - '5050:80'
+  #   networks:
+  #       - custom_network
 
 # volumes:
 #   pdata:
