@@ -11,6 +11,15 @@
         "database.server.name": "postgres",
         "table.include.list": "public.habit_data, public.pers_data, public.reports_data",
         "table.whitelist": "public.habit_data, public.pers_data, public.reports_data",
-        "topic.prefix": "topic_habit"
+        "topic.prefix": "topic_habit",
+        "key.converter": "org.apache.kafka.connect.storage.StringConverter",
+        "key.converter.schemas.enable": "false",
+        "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+        "value.converter.schemas.enable": "false",
+        "provide.transaction.metadata": "false",
+        "output.key.format": "STRING",
+        "transforms": "flatten",
+        "transforms.flatten.type": "org.apache.kafka.connect.transforms.Flatten$Value",
+        "transforms.flatten.delimiter": "."
     }
     }
