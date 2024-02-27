@@ -1,1 +1,0 @@
-select * from habit_data 

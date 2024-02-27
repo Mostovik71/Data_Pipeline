@@ -8,4 +8,8 @@ CREATE TABLE habit_data
  habit_notification_day varchar,
  habit_notification_time varchar,
  habit_week varchar
-)
+);
+
+ALTER TABLE habit_data REPLICA IDENTITY FULL;
+
+SELECT * FROM habit_data
