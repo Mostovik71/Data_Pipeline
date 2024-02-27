@@ -1,6 +1,6 @@
 import pandas as pd
 import psycopg2
-conn = psycopg2.connect(dbname='postgres', user='admin', 
+conn = psycopg2.connect(dbname='habit', user='admin', 
                         password='root', host='localhost')
 cursor = conn.cursor()
 
