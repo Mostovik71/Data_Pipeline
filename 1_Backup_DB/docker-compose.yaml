@@ -1,10 +1,5 @@
 version: '3.5'
 
-networks:
-  custom_network:
-    driver: bridge
-
-
 services:
   postgres:
     image: debezium/postgres:13
@@ -17,8 +12,8 @@ services:
       - POSTGRES_DB=habit
     networks:
       - custom_network
-    # volumes:
-    #   - pdata:/var/lib/postgresql/data
+    volumes:
+      - pdata:/var/lib/postgresql/data
     
   zookeeper:
     image: confluentinc/cp-zookeeper:5.5.3
@@ -78,18 +73,21 @@ services:
       - custom_network
 
   clickhouse:
-    image: clickhouse/clickhouse-server:23.12-alpine
+    image: clickhouse/clickhouse-server:21.3.20.1
     container_name: clickhouse
     ports:
-      - "8123:8123"
+      - 8123:8123
+      - 9000:9000
     environment:
       - CLICKHOUSE_DB=habit
       - CLICKHOUSE_USER=admin
       - CLICKHOUSE_PASSWORD=root
     networks:
       - custom_network
-    ulimits:
-      nofile: 262144 
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+      - clickhouse_logs:/var/log/clickhouse-server
+
 
   
   # PGADMIN нужен только на этапе конфигурации debezium
@@ -101,12 +99,34 @@ services:
   #       - PGADMIN_DEFAULT_EMAIL=admin@admin.com
   #       - PGADMIN_DEFAULT_PASSWORD=root
   #   ports:
-  #       - '5050:80'
+  #       - 5050:80
   #   networks:
   #       - custom_network
 
-# volumes:
-#   pdata:
-#     external: true
-#     name:
-#       5a64e9dcd025fc9a173e592b047aac519e61536c7a88db553712872630eb2acf
+networks:
+  custom_network:
+    name: custom_network
+    driver: bridge
+
+volumes:
+  pdata:
+    name: postgres_main_volume
+    driver: local
+    driver_opts:
+        type: none
+        o: bind
+        device: ../docker_data/postgres_main/data
+  clickhouse_data:
+    name: clickhouse_main_data_volume
+    driver: local
+    driver_opts:
+        type: none
+        o: bind
+        device: ../docker_data/clickhouse_main/data
+  clickhouse_logs:
+    name: clickhouse_main_logs_volume
+    driver: local
+    driver_opts:
+        type: none
+        o: bind
+        device: ../docker_data/clickhouse_main/logs
