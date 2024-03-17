@@ -1,0 +1,30 @@
+version: "3.7"
+
+services:
+  minio:
+    image: quay.io/minio/minio
+    container_name: minio
+    command: server /data --console-address ":9090"
+    ports:
+      - 9000:9000
+      - 9090:9090
+    volumes:
+      - minio:/data
+    environment:
+      - MINIO_ROOT_USER=admin
+      - MINIO_ROOT_PASSWORD=secret_key
+    networks:
+      - minio_net
+
+networks:
+  minio_net:
+    name: minio_net
+volumes:
+  minio:
+    name: minio_volume
+    driver: local
+    driver_opts:
+        type: none
+        o: bind
+        device: ../docker_data/minio/data
+      
