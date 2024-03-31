@@ -114,6 +114,22 @@ services:
     networks:
         - custom_network
 
+  grafana:
+    image: grafana/grafana:10.1.9
+    container_name: grafana
+    ports:
+     - 3000:3000
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=root
+      - GF_USERS_ALLOW_SIGN_UP=false
+    networks:
+      - custom_network
+
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - grafana_logs:/var/log/grafana
+
 networks:
   custom_network:
     name: custom_network
@@ -141,3 +157,18 @@ volumes:
         type: none
         o: bind
         device: ../docker_data/clickhouse_main/logs
+
+  grafana_data:
+    name: grafana_data_volume
+    driver: local
+    driver_opts:
+        type: none
+        o: bind
+        device: ../docker_data/grafana/data
+  grafana_logs:
+    name: grafana_logs_logs_volume
+    driver: local
+    driver_opts:
+        type: none
+        o: bind
+        device: ../docker_data/grafana/logs
