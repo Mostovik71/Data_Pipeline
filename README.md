@@ -1,5 +1,5 @@
 # Механизм доставки, обработки и хранения данных 
-## Структура проекта:
+## Структура проекта
 1. Backup_DB - код для стриминговой доставки (PostgreSQL -> Debezium + Kafka -> ClickHouse)
   - Data_Preparing - код для предобработки данных перед добавлением в PostgreSQL
   - Postgres_DB - работа с Postgres 
